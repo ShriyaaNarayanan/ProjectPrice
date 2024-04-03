@@ -21,7 +21,6 @@ class basicAuthorInfoFromPubMed:
     def __init__(self, link):
         self.link = link
         self.namesAndInfo = {}
-    #print("Current Time 1 =",datetime.now().strftime("%H:%M:%S"))
 
     def getAuthorNamesOnly(self):
         names = []
@@ -43,13 +42,9 @@ class basicAuthorInfoFromPubMed:
     async def pubMedSearch(self):
 
         names = self.getAuthorNamesOnly()
-        #print(names)
-        #print("Current Time 1 =",datetime.now().strftime("%H:%M:%S"))
         search_tasks = []
-        #print("Inside pubMedSearch")
         async with aiohttp.ClientSession() as session:
             for name in names:
-                #print("The name is "+name)
                 first_and_last_list = name.split(" ")
                 search_url = "https://pubmed.ncbi.nlm.nih.gov/?term="+first_and_last_list[0]
                 for i in range(1, len(first_and_last_list)):
@@ -57,19 +52,14 @@ class basicAuthorInfoFromPubMed:
                 search_url += "&filter=years.2023-2024"
                 search_tasks.append(asyncio.create_task(self.fetch_affiliation(session, name, search_url)))
 
-            #print("Current Time 4 =",datetime.now().strftime("%H:%M:%S"))
             results = await asyncio.gather(*search_tasks)
             return results
-            #print(self.namesAndLinks)
 
             
     async def fetch_affiliation(self, session, name, search_url):
-        #print(search_url)
-        #print("Current Time 5 =",datetime.now().strftime("%H:%M:%S"))
+    
         async with session.get(search_url) as response:
             html = await response.text()
-            #print("Current Time 6 =",datetime.now().strftime("%H:%M:%S"))
-            #g = basicAuthorInfoFromPubMed(self.link)
             affiliation = None
             soup = BeautifulSoup(html, 'html.parser')
             if (soup.find(class_="single-result-redirect-message") is not None):
@@ -84,8 +74,6 @@ class basicAuthorInfoFromPubMed:
 
             if affiliation is not None:
                 self.namesAndInfo[name] = affiliation
-                #print(self.namesAndLinks[name])
-                #print(self.namesAndLinks[name])
             else:
                 print(name, None)
                 self.namesAndInfo[name] = None
@@ -95,7 +83,6 @@ class basicAuthorInfoFromPubMed:
         soup = BeautifulSoup(site.text, 'html.parser')
         place = soup.find(class_="authors-list")
         namesAndDetails = place.find_all(class_ = "authors-list-item")
-        #h = AuthorAffiliationThroughPubMed(link)
         await self.pubMedSearch()
         '''
         self.namesAndInfo = self.getNamesAndInfo()
@@ -114,10 +101,8 @@ class basicAuthorInfoFromPubMed:
             else:
                 pass
             '''
-            #affiliationClass = name.find(class_="affiliation-links")
         print("These are the names: ", self.namesAndInfo)
         #excel.save("Author Names And Info.xlsx")
-        #print("Current Time 2 =",datetime.now().strftime("%H:%M:%S"))
     def getSpecificAuthorNameInfoSynchronously(self, name):
         site = s.get(self.link)
         soup = BeautifulSoup(site.text, 'html.parser')
@@ -127,7 +112,6 @@ class basicAuthorInfoFromPubMed:
             innerclass = namer.find(class_ = "full-name")
             if (innerclass):
                 stringName = innerclass.get("data-ga-label")
-                #print(stringName)
                 if (stringName):
                     if (stringName == name):
                         affiliationClass = namer.find(class_="affiliation-links")
@@ -141,18 +125,13 @@ class basicAuthorInfoFromPubMed:
                                 self.namesAndInfo [stringName] = affiliationListInfo 
                         else:
                             self.namesAndInfo[stringName] = None
-                        #print(affiliationListInfo)
                         try:
-                            #print(stringName, affiliationListInfo)
                             return affiliationListInfo
                         except Exception as e:
-                            #print(stringName, "No affiliationListInfo - ",e)
                             return None
 
     async def getSpecificAuthorNameInfo(self,link, name,session):
-        #print(name,",",link)
         async with session.get(link) as response:
-        #site = s.get(link)
             soup = BeautifulSoup(await response.text(), 'html.parser')
             place = soup.find(class_="authors-list")
             if (place is None):
@@ -162,7 +141,6 @@ class basicAuthorInfoFromPubMed:
                 innerclass = namer.find(class_ = "full-name")
                 if (innerclass):
                     stringName = innerclass.get("data-ga-label")
-                    #print(stringName)
                     if (stringName):
                         if (stringName == name):
                             affiliationClass = namer.find(class_="affiliation-links")
@@ -173,72 +151,19 @@ class basicAuthorInfoFromPubMed:
                                 namesAndInfo[stringName] = affiliationListInfo
                             else:
                                 namesAndInfo[stringName] = None
-                            #print(affiliationListInfo)
                             try:
-                                if (stringName == "Noushin Mohammadifard"):
-                                    print("AAAAA ", stringName, affiliationListInfo)
                                 namesAndInfo[stringName] = affiliationListInfo
                                 return affiliationListInfo
                             except Exception as e:
-                                #print("AAAAAB ", stringName, "No affiliationListInfo - ",e)
                                 return None
-                else :
-                    print("did not find class full-name")
-            
-    
-    
-    
-    
-                    #print("Did not get value")
-        """for name in names:
-            first_and_last_list = name.split(" ")
-            search_url = "https://pubmed.ncbi.nlm.nih.gov/?term="+first_and_last_list[0]
-            for i in range(1, len(first_and_last_list)):
-                search_url += "+" + first_and_last_list[i]
-            search_url += "&filter=years.2023-2024"
-            search_query = s.get(search_url)
-            soup = BeautifulSoup(search_query.text, 'html.parser')
-            
-            for div in soup.find_all('div', class_='docsum-content'):
-                linker = div.find('a')['href']
-                linker = "https://pubmed.ncbi.nlm.nih.gov"+linker
-                affiliation = g.getSpecificAuthorNameInfo(linker, name)
-                if (affiliation!=None):
-                    self.namesAndLinks[name] = affiliation
-                    break
-            self.namesAndLinks[name] = None"""
-        
-    """def findAuthorAffiliationSynchronously(self, name):
-        first_and_last_list = name.split(" ")
-        search_url = "https://pubmed.ncbi.nlm.nih.gov/?term="+first_and_last_list[0]
-        for i in range(1, len(first_and_last_list)):
-            search_url += "+" + first_and_last_list[i]
-        search_url += "&filter=years.2023-2024"
-        search_query = s.get(search_url)
-        soup = BeautifulSoup(search_query.text, 'html.parser')
-        
-        for div in soup.find_all('div', class_='docsum-content'):
-            linker = div.find('a')['href']
-            linker = "https://pubmed.ncbi.nlm.nih.gov"+linker
-            affiliation = self.getSpecificAuthorNameInfoSynchronously( name)
-            if (affiliation!=None):
-                #namesAndInfo[name] = affiliation
-                print(affiliation)
-                return affiliation
-        return None"""
 
 async def main():
-    #g = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/36609584/")
-    #await g.getAuthorNamesAndInfo()
+    g = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/36609584/")
+    await g.getAuthorNamesAndInfo()
     h = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/36215063/")
-    #h.findAuthorAffiliationSynchronously("Noushin Mohammadifard")
-    #h.findAuthorAffiliationSynchronously("Aleksei Sholokhov")
     await h.getAuthorNamesAndInfo()
-    #n = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/23407571/")
-    #n.findAuthorAffiliationSynchronously("Geoffrey Johnston")
-    #n.getSpecificAuthorNameInfoSynchronously("Christopher M Barker")
-    #n.getSpecificAuthorNameInfoSynchronously("Louis Lambrechts")
-    #await n.getAuthorNamesAndInfo()
+    n = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/23407571/")
+    await n.getAuthorNamesAndInfo()
 
 asyncio.run(main())
 
