@@ -4,7 +4,8 @@ import aiohttp
 import asyncio
 import requests, openpyxl
 from datetime import datetime
-
+import re
+# pip install requests-html
 link = ""
 namesAndInfo = {}
 s = HTMLSession()
@@ -50,28 +51,41 @@ class basicAuthorInfoFromPubMed:
         async with session.get(link) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
             place = soup.find(class_="authors-list")
-            namesAndDetails = place.find_all(class_ = "authors-list-item")
-            for namer in namesAndDetails:
-                innerclass = namer.find(class_ = "full-name")
-                if (innerclass):
-                    stringName = innerclass.get("data-ga-label")
-                    if (stringName):
-                        if (stringName == name):
-                            affiliationClass = namer.find(class_="affiliation-links")
-                            if affiliationClass:
-                                newAffiliationClass = affiliationClass.find(class_="affiliation-link")
-                                affiliationListInfo = newAffiliationClass["title"].split(". ")
-                                affiliation = affiliationListInfo[0]
-                                namesAndInfo[stringName] = affiliationListInfo
-                            else:
-                                namesAndInfo[stringName] = None
-                            try:
-                                namesAndInfo[stringName] = affiliationListInfo
-                                return affiliationListInfo
-                            except Exception as e:
-                                return None
-                else :
-                    print("did not find class full-name")
+            try:
+                namesAndDetails = place.find_all(class_ = "authors-list-item")
+                for namer in namesAndDetails:
+                    innerclass = namer.find(class_ = "full-name")
+                    if (innerclass):
+                        stringName = innerclass.get("data-ga-label")
+                        if (stringName):
+                            if (stringName == name):
+                                affiliationClass = namer.find(class_="affiliation-links")
+                                if affiliationClass:
+                                    newAffiliationClass = affiliationClass.find(class_="affiliation-link")
+                                    affiliationListInfo1 = newAffiliationClass["title"]
+                                    email_match = re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', affiliationListInfo1)
+                                    if (email_match):
+                                        email = email_match.group()
+                                        oldAffiliation = affiliationListInfo1.replace(email, '').replace('title="', '').replace('"', '')
+                                        affiliation = oldAffiliation.rsplit(". ", 2)[0]
+                                    else:
+                                        affiliation = affiliationListInfo1.replace('title="', '').replace('"', '').strip()
+                                    if (email_match):
+                                        affiliationListInfo = [affiliation, email]
+                                    else:
+                                        affiliationListInfo = [affiliation, None]
+                                    namesAndInfo[stringName] = affiliationListInfo
+                                else:
+                                    namesAndInfo[stringName] = None
+                                try:
+                                    namesAndInfo[stringName] = affiliationListInfo
+                                    return affiliationListInfo
+                                except Exception as e:
+                                    return None
+                    else :
+                        print("did not find class full-name")
+            except:
+                return None
 
     # Goes through all research paper links after searching up an author's name in PubMed
     # until it finds an affiliation
