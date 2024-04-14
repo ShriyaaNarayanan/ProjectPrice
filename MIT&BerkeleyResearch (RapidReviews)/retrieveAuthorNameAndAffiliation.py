@@ -171,6 +171,9 @@ class basicAuthorInfoFromPubMed:
 async def main():
     #g = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/36609584/")
     #await g.getAuthorNamesAndInfoInSpreadsheet()
+    inputLink = input("What published article would you like author information about? ")
+    n = basicAuthorInfoFromPubMed(inputLink)
+    await n.getAuthorNamesAndInfoInSpreadsheet
     h = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/36215063/")
     await h.getAuthorNamesAndInfoInSpreadsheet()
     #n = basicAuthorInfoFromPubMed("https://pubmed.ncbi.nlm.nih.gov/23407571/")
